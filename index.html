@@ -1,0 +1,1456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ePayWallet Ads Lab</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --panel: #f6f7f9;
+    --panel-2: #eef1f5;
+    --line: #d8dee8;
+    --text: #1c2430;
+    --muted: #526070;
+    --faint: #6b7787;
+    --blue: #1d5fd0;
+    --blue-2: #1d5fd0;
+    --green: #0d7a43;
+    --red: #c42318;
+    --amber: #8a5a00;
+    --shadow: none;
+    --font: "Segoe UI", Helvetica, Arial, sans-serif;
+    --mono: "SFMono-Regular", ui-monospace, Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: 14px/1.5 var(--font); }
+  button, input, select { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  h1, h2, h3, p { margin: 0; }
+  .app { min-height: 100%; display: flex; flex-direction: column; }
+  header {
+    display: flex; align-items: center; gap: 16px;
+    padding: 10px 16px; border-bottom: 1px solid var(--line); background: #ffffff;
+  }
+  .brand { display: flex; flex-direction: column; min-width: 180px; }
+  .brand strong { font-size: 14px; letter-spacing: 0.02em; }
+  .brand span { color: var(--muted); font-size: 11px; }
+  .kpis { display: flex; gap: 8px; flex-wrap: wrap; flex: 1; }
+  .pill {
+    border: 1px solid var(--line); background: var(--panel); border-radius: 99px;
+    padding: 4px 10px; color: var(--muted); font-variant-numeric: tabular-nums;
+  }
+  .pill.good { color: var(--green); border-color: #b7e0c8; background: #f3fbf6; }
+  .pill.bad { color: var(--red); border-color: #f3c4be; background: #fff6f5; }
+  .tabs { display: flex; gap: 6px; padding: 10px 12px 0; border-bottom: 1px solid var(--line); background: #ffffff; overflow-x: auto; }
+  .tabs button, .subtabs button, .btn {
+    background: transparent; border: 1px solid transparent; color: var(--muted);
+    border-radius: 8px 8px 0 0; padding: 8px 12px;
+  }
+  .tabs button { display: flex; flex-direction: column; align-items: flex-start; min-width: 128px; text-align: left; line-height: 1.25; }
+  .tabs button b { font-size: 14px; font-weight: 650; color: inherit; }
+  .tabs button small, .subtabs button small { display: block; color: var(--faint); font-size: 11px; font-weight: 400; }
+  .tabs button.active { color: var(--text); background: var(--panel); border-color: var(--line); border-bottom-color: var(--panel); }
+  .page-head h2 { font-size: 20px; line-height: 1.3; }
+  .page-head p { color: var(--muted); margin-top: 4px; }
+  .steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 0; padding: 0; list-style: none; }
+  .steps li { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+  .steps b { display: block; margin-bottom: 2px; }
+  .steps span { color: var(--muted); }
+  main { flex: 1; }
+  .panel { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+  .panel[hidden] { display: none !important; }
+  .lede { color: var(--muted); max-width: 980px; }
+  .subtabs { display: flex; gap: 6px; }
+  .subtabs button { border-radius: 8px; border: 1px solid var(--line); background: var(--panel); text-align: left; line-height: 1.25; padding: 8px 12px; }
+  .subtabs button b { font-weight: 650; color: inherit; }
+  .subtabs button.active { color: #ffffff; border-color: var(--blue); background: var(--blue); }
+  .subtabs button.active small { color: #e7f0ff; }
+  .split { display: grid; grid-template-columns: 250px 1fr; gap: 14px; align-items: start; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
+  .card h2 { font-size: 13px; margin-bottom: 8px; }
+  .tree button {
+    width: 100%; text-align: left; background: transparent; border: 0; color: var(--text);
+    padding: 7px 8px; border-radius: 6px;
+  }
+  .tree button small { display: block; color: var(--faint); font-size: 11px; }
+  .tree button.active { background: #e7f0ff; color: var(--text); }
+  .tree .camp { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; padding: 4px 8px; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: end; }
+  label { display: flex; flex-direction: column; gap: 4px; color: var(--muted); font-size: 11px; }
+  input, select {
+    background: #ffffff; border: 1px solid var(--line); border-radius: 4px; padding: 7px 8px; min-width: 0; color: var(--text);
+  }
+  input:focus, select:focus, button:focus-visible { outline: 1px solid var(--blue); outline-offset: 1px; }
+  .btn, .tabs button, .subtabs button { border-radius: 6px; }
+  .btn { border: 1px solid var(--line); background: var(--panel-2); color: var(--text); padding: 7px 10px; }
+  .btn.primary { background: var(--blue); border-color: var(--blue); color: #ffffff; }
+  .btn.danger { color: var(--red); }
+  .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .table-wrap { overflow: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); max-height: 460px; }
+  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  th, td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: left; white-space: nowrap; }
+  th { position: sticky; top: 0; background: #eef1f5; color: var(--muted); font-size: 11px; font-weight: 600; z-index: 1; }
+  td.num, th.num { text-align: right; }
+  tr:hover td { background: #f3f6fb; }
+  td.good, .good { color: var(--green); font-weight: 600; }
+  td.bad, .bad { color: var(--red); font-weight: 600; }
+  td.muted, .muted { color: var(--muted); }
+  .tag { display: inline-block; border: 1px solid var(--line); border-radius: 4px; padding: 1px 6px; color: var(--muted); font-family: var(--mono); font-size: 11px; }
+  .tag.ex { color: var(--amber); border-color: #e4d2a8; background: #fff8eb; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+  .stat .v { font-size: 20px; font-variant-numeric: tabular-nums; margin-top: 4px; }
+  .stat .v.good { color: var(--green); }
+  .stat .v.bad { color: var(--red); }
+  .stat .s { color: var(--faint); font-size: 11px; }
+  .note { border-left: 2px solid var(--blue); padding: 8px 10px; color: var(--text); background: #f3f7fd; }
+  .note.warn { border-left-color: var(--amber); }
+  .note.bad { border-left-color: var(--red); }
+  .funnel { display: grid; gap: 12px; }
+  .f-chan { display: grid; grid-template-columns: 150px 1fr; gap: 10px; align-items: center; }
+  .f-bars { display: grid; gap: 4px; }
+  .f-bar { height: 26px; background: #1d5fd0; color: #ffffff; display: flex; align-items: center; justify-content: space-between; padding: 0 8px; min-width: 96px; }
+  .f-bar.org { background: #6b7787; }
+  .f-bar span { font-size: 11px; }
+  .previews { display: flex; gap: 12px; flex-wrap: wrap; }
+  .admock { width: 260px; background: #ffffff; border: 1px solid var(--line); border-radius: 8px; padding: 10px; }
+  .admock .who { color: var(--faint); font-size: 11px; }
+  .admock h3 { font-size: 14px; margin: 6px 0; }
+  .admock p { color: var(--muted); min-height: 36px; }
+  .cta { display: inline-block; margin-top: 8px; background: var(--blue); color: #ffffff; border-radius: 4px; padding: 4px 8px; font-size: 12px; }
+  .result {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  }
+  .winner { grid-column: 1 / -1; padding: 12px; border-radius: 8px; border: 1px solid #b7e0c8; background: #f3fbf6; color: var(--text); }
+  .winner.bad { background: #fff6f5; border-color: #f3c4be; }
+  .winner h3 { margin-bottom: 4px; }
+  .modal-back {
+    position: fixed; inset: 0; background: rgba(28, 36, 48, 0.35);
+    display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 20;
+  }
+  .modal-back[hidden] { display: none; }
+  .modal { width: min(460px, 100%); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 16px; }
+  .modal h2 { margin-bottom: 8px; }
+  .modal p { color: var(--muted); margin-bottom: 14px; }
+  .modal .row { justify-content: flex-end; }
+  .factors { width: 100%; }
+  .factors td, .factors th { white-space: normal; }
+  .factors select, .factors input { width: 100%; }
+  .err { color: var(--red); min-height: 18px; }
+  details { color: var(--muted); }
+  summary { cursor: pointer; color: var(--text); }
+  @media (max-width: 960px) {
+    .split, .grid-4, .grid-3, .result, .f-chan, .steps { grid-template-columns: 1fr; }
+    header { align-items: flex-start; flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">
+      <strong>ePayWallet Ads Lab</strong>
+      <span>马来西亚钱包拉新 · 注册 sign_up · 货币 MYR</span>
+    </div>
+    <div class="kpis" id="header-kpis"></div>
+    <button class="btn" type="button" data-action="reset">Reset demo</button>
+  </header>
+  <nav class="tabs" aria-label="Labs">
+    <button type="button" data-tab="sem"><b>1 搜索广告</b><small>Google SEM</small></button>
+    <button type="button" data-tab="meta"><b>2 信息流</b><small>Meta Ads</small></button>
+    <button type="button" data-tab="ab"><b>3 对比实验</b><small>A/B Tests</small></button>
+    <button type="button" data-tab="ga4"><b>4 网站数据</b><small>GA4</small></button>
+    <button type="button" data-tab="overview"><b>5 汇总判断</b><small>Overview</small></button>
+  </nav>
+  <main>
+    <section class="panel" id="panel-sem">
+      <div class="page-head">
+        <h2>搜索广告</h2>
+        <p>用户在 Google 里搜词时，决定哪些词可以花钱、哪些查询必须拦住。近 30 天，出价方式是 Manual CPC。</p>
+      </div>
+      <ol class="steps">
+        <li><b>1. 先看结构</b><span>左侧是广告系列和广告组。真实账户里，一组只放同一种意图的词。</span></li>
+        <li><b>2. 再看关键词</b><span>绿色是达标或更好，红色是更差。先看 CPA，再看 CTR、CPC、CVR。</span></li>
+        <li><b>3. 最后看搜索词</b><span>用户实际输入的句子。跑偏的查询回到「否定关键词」加进去。</span></li>
+      </ol>
+      <div class="subtabs" id="sem-subtabs">
+        <button type="button" data-semsub="keywords"><b>关键词</b><small>Keywords · 你主动买的词</small></button>
+        <button type="button" data-semsub="negatives"><b>否定关键词</b><small>Negative keywords · 拦住不该花的查询</small></button>
+        <button type="button" data-semsub="terms"><b>搜索词报告</b><small>Search terms · 用户真正搜了什么</small></button>
+      </div>
+      <div class="split">
+        <aside class="card tree" id="sem-tree"></aside>
+        <div>
+          <div data-sempanel="keywords">
+            <form id="form-keyword" class="card">
+              <h2>添加关键词</h2>
+              <p class="lede">Exact 只接完全相同的查询，Phrase 要求词按顺序出现，Broad 会扩到相关查询。括号和引号是 Google Ads 的写法。</p>
+              <div class="row">
+                <label>Ad group<select id="kw-ag"></select></label>
+                <label>Keyword<input id="kw-text" placeholder="digital wallet malaysia" /></label>
+                <label>Match type
+                  <select id="kw-match">
+                    <option value="exact">Exact</option>
+                    <option value="phrase" selected>Phrase</option>
+                    <option value="broad">Broad</option>
+                  </select>
+                </label>
+                <button class="btn primary" type="submit">Add keyword</button>
+              </div>
+              <div class="err" id="kw-err"></div>
+            </form>
+            <div class="row" style="margin: 10px 0;">
+              <button class="btn" type="button" data-action="export-keywords">Export keywords CSV</button>
+              <label>Filter<input id="kw-filter" placeholder="Filter keyword text" /></label>
+            </div>
+            <div class="table-wrap" id="kw-table"></div>
+          </div>
+          <div data-sempanel="negatives" hidden>
+            <form id="form-negative" class="card">
+              <h2>添加否定关键词</h2>
+              <div class="row">
+                <label>Level
+                  <select id="neg-level">
+                    <option value="campaign">Campaign</option>
+                    <option value="adgroup">Ad group</option>
+                  </select>
+                </label>
+                <label>Ad group<select id="neg-ag"></select></label>
+                <label>Negative keyword<input id="neg-text" placeholder="login" /></label>
+                <label>Match type
+                  <select id="neg-match">
+                    <option value="exact">Negative exact</option>
+                    <option value="phrase" selected>Negative phrase</option>
+                    <option value="broad">Negative broad</option>
+                  </select>
+                </label>
+                <button class="btn primary" type="submit">Add negative</button>
+              </div>
+              <p class="lede" style="margin-top:8px;">否定精确只拦这一句。否定短语拦「按顺序包含这些词」的查询。否定广泛拦「每个词都出现、不要求顺序」的查询，但不会拦同义词。所以精确否定 [jobs] 拦不住 digital wallet malaysia jobs。</p>
+              <div class="err" id="neg-err"></div>
+            </form>
+            <div class="table-wrap" id="neg-table" style="margin-top:10px;"></div>
+          </div>
+          <div data-sempanel="terms" hidden>
+            <div class="row" style="margin-bottom:10px;">
+              <button class="btn primary" type="button" data-action="export-terms">Export search term report CSV</button>
+            </div>
+            <p class="lede" id="term-note"></p>
+            <div class="table-wrap" id="term-table" style="margin-top:10px;"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-meta" hidden>
+      <div class="page-head">
+        <h2>信息流广告</h2>
+        <p>人没在搜索，广告出现在 Facebook / Instagram 信息流里。目标是网站注册 sign_up，归因看 7 天点击。花费按日预算 × 30 天模拟。</p>
+      </div>
+      <ol class="steps">
+        <li><b>1. 先选受众</b><span>兴趣、行为、再营销、相似受众，是四种不同的找人方式。</span></li>
+        <li><b>2. 再放两套素材</b><span>同一个广告组里放 Creative A 和 B，先看出哪张图更能带来注册。</span></li>
+        <li><b>3. 用 CPA 判断</b><span>点击率正常，不代表获客便宜。冷流量经常点击还行，但 CPA 超标。</span></li>
+      </ol>
+      <div class="subtabs">
+        <button type="button" data-metasub="adsets"><b>广告组</b><small>Ad sets · 受众和预算</small></button>
+        <button type="button" data-metasub="creatives"><b>素材</b><small>Creatives · 图、视频、文案</small></button>
+      </div>
+      <div data-metapanel="adsets">
+        <form id="form-adset" class="card">
+          <h2>新建广告组</h2>
+          <p class="lede">一个广告组只测一种受众。日预算是每天最多花多少，不是已经花掉的钱。</p>
+          <div class="row">
+            <label>Ad set name<input id="as-name" placeholder="AS_RMK_PricingPage_14d" /></label>
+            <label>Audience type
+              <select id="as-type">
+                <option value="interest">Interest</option>
+                <option value="behavior">Behavior</option>
+                <option value="remarketing">Remarketing</option>
+                <option value="lookalike">Lookalike</option>
+              </select>
+            </label>
+            <label>Audience<select id="as-detail"></select></label>
+            <label>Daily budget (MYR)<input id="as-budget" type="number" min="1" step="1" value="80" /></label>
+            <label>Creative A<select id="as-crea"></select></label>
+            <label>Creative B<select id="as-creb"></select></label>
+            <button class="btn primary" type="submit">Create ad set</button>
+          </div>
+          <div class="err" id="as-err"></div>
+        </form>
+        <div class="row" style="margin:10px 0;">
+          <button class="btn" type="button" data-action="export-meta">Export ad sets CSV</button>
+        </div>
+        <div class="table-wrap" id="meta-table"></div>
+        <div id="meta-detail" style="margin-top:12px;"></div>
+      </div>
+      <div data-metapanel="creatives" hidden>
+        <form id="form-creative" class="card">
+          <h2>上传素材</h2>
+          <p class="lede">这里是模拟上传，文件不会离开这台电脑。上传后回到广告组，把它放进 Creative A 或 B。</p>
+          <div class="row" style="margin-top:8px;">
+            <label>Name<input id="cr-name" placeholder="Referral_bonus_static" /></label>
+            <label>Format
+              <select id="cr-format">
+                <option>Single image</option>
+                <option>Video</option>
+                <option>Carousel</option>
+              </select>
+            </label>
+            <label>Headline<input id="cr-head" placeholder="Send money with zero transfer fee" /></label>
+            <label>Primary text<input id="cr-body" placeholder="Open ePayWallet and verify in minutes." /></label>
+            <button class="btn primary" type="submit">Upload</button>
+          </div>
+          <div class="err" id="cr-err"></div>
+        </form>
+        <div class="previews" id="creative-lib" style="margin-top:12px;"></div>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-ab" hidden>
+      <div class="page-head">
+        <h2>对比实验</h2>
+        <p>一次只改一个东西，才能知道是谁带来了变化。输入两边的花费和注册数，页面算出 CPA 和 ROAS。</p>
+      </div>
+      <ol class="steps">
+        <li><b>1. 选定变量</b><span>素材、受众、版位、标题、出价，只能有一个不一样。</span></li>
+        <li><b>2. 填入结果</b><span>只填 Spend 和 sign_up。CPA = 花费 / 注册，ROAS = 48 × 注册 / 花费。</span></li>
+        <li><b>3. 看样本够不够</b><span>每一边至少 50 个注册才叫有效。改了两个以上会弹窗，不宣布赢家。</span></li>
+      </ol>
+      <div class="row">
+        <button class="btn" type="button" data-action="ab-valid">载入一个合格实验</button>
+        <button class="btn" type="button" data-action="ab-bad">载入一个改了两项的实验</button>
+      </div>
+      <div class="card">
+        <div class="row">
+          <label>Test name<input id="ab-name" value="MY_Signup_Creative_Zerofee_vs_Cashback" /></label>
+          <label>Variable under test
+            <select id="ab-factor">
+              <option value="creative" selected>Creative</option>
+              <option value="audience">Audience</option>
+              <option value="placement">Placement</option>
+              <option value="headline">Headline</option>
+              <option value="bid">Bid strategy</option>
+            </select>
+          </label>
+        </div>
+        <div class="table-wrap" style="margin-top:10px; max-height:none;">
+          <table class="factors">
+            <thead>
+              <tr><th>Factor</th><th>Version A</th><th>Version B</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Creative</td>
+                <td><select id="a-creative"></select></td>
+                <td><select id="b-creative"></select></td>
+              </tr>
+              <tr>
+                <td>Audience</td>
+                <td><select id="a-audience"></select></td>
+                <td><select id="b-audience"></select></td>
+              </tr>
+              <tr>
+                <td>Placement</td>
+                <td><select id="a-placement"></select></td>
+                <td><select id="b-placement"></select></td>
+              </tr>
+              <tr>
+                <td>Headline</td>
+                <td><select id="a-headline"></select></td>
+                <td><select id="b-headline"></select></td>
+              </tr>
+              <tr>
+                <td>Bid strategy</td>
+                <td><select id="a-bid"></select></td>
+                <td><select id="b-bid"></select></td>
+              </tr>
+              <tr>
+                <td>Spend (MYR)</td>
+                <td><input id="a-spend" type="number" min="0" step="0.01" value="2400" /></td>
+                <td><input id="b-spend" type="number" min="0" step="0.01" value="2350" /></td>
+              </tr>
+              <tr>
+                <td>Conversions (sign_up)</td>
+                <td><input id="a-conv" type="number" min="0" step="1" value="78" /></td>
+                <td><input id="b-conv" type="number" min="0" step="1" value="96" /></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="row" style="margin-top:10px;">
+          <button class="btn primary" type="button" data-action="ab-eval">计算并判断</button>
+        </div>
+        <div class="err" id="ab-err"></div>
+      </div>
+      <div id="ab-result"></div>
+    </section>
+
+    <section class="panel" id="panel-ga4" hidden>
+      <div class="page-head">
+        <h2>网站数据</h2>
+        <p>广告账户看花费，GA4 看人进站之后做了什么。两边用 UTM 对上。自然流量可以看，但不能算进广告 ROAS。</p>
+      </div>
+      <ol class="steps">
+        <li><b>1. 先分来源</b><span>google / cpc 是搜索广告，facebook / cpc 是信息流，google / organic 是自然搜索。</span></li>
+        <li><b>2. 再看漏斗</b><span>看页面 → 开始注册 → 注册成功。掉下去的那一步，就是落地页或表单的问题。</span></li>
+        <li><b>3. 花费不要从这里加</b><span>GA4 没有广告花费。花费从 Google Ads 和 Meta 带过来。</span></li>
+      </ol>
+      <div class="note warn" id="ga4-warn"></div>
+      <div class="row">
+        <button class="btn" type="button" data-action="export-ga4">Export GA4 CSV</button>
+      </div>
+      <div class="table-wrap" id="ga4-table" style="max-height:none;"></div>
+      <h2>转化漏斗 · view_page → begin_signup → sign_up</h2>
+      <div class="card funnel" id="ga4-funnel"></div>
+      <p class="lede">事件名按这个练习来。真实 GA4 里，打开页面常常记成 page_view，除非你把事件改名。</p>
+    </section>
+
+    <section class="panel" id="panel-overview" hidden>
+      <div class="page-head">
+        <h2>汇总判断</h2>
+        <p>把搜索和信息流加在一起，看这 30 天广告有没有达到 CPA ≤ 25、ROAS ≥ 1.8。自然流量不在这里。</p>
+      </div>
+      <ol class="steps">
+        <li><b>绿色</b><span>落在行业带里，或比行业带更好。CPA、ROAS 则是过了账户目标。</span></li>
+        <li><b>红色</b><span>比行业带更差，或 CPA 高于 25、ROAS 低于 1.8。</span></li>
+        <li><b>合计行不涂 CTR</b><span>搜索和信息流的点击率标准不同，混在一起没有一条共同基准。</span></li>
+      </ol>
+      <div class="grid-4" id="ov-stats"></div>
+      <div class="table-wrap" id="ov-table" style="max-height:none;"></div>
+      <div class="row">
+        <button class="btn" type="button" data-action="export-overview">Export summary CSV</button>
+      </div>
+      <h2>花费最高、但 CPA 没达标的行</h2>
+      <p class="lede">优化时先动这些。上面的账户合计可能看起来还行，钱其实花在下面这几行。</p>
+      <div class="table-wrap" id="ov-fix" style="max-height:320px;"></div>
+      <details class="card">
+        <summary>Formulas and bands</summary>
+        <p style="margin-top:8px;">CTR = Clicks / Impressions · CPC = Spend / Clicks · CVR = Conversions / Clicks · CPA = Spend / Conversions · ROAS = (48 × Conversions) / Spend. Value per sign_up is MYR 48.</p>
+        <p>SEM band: CTR 3%–6%, CPC MYR 2.50–4.00, CVR 8%–15%.</p>
+        <p>Meta band: CTR 0.8%–1.8%, CPC MYR 3.00–6.00, CVR 4%–9%.</p>
+      </details>
+    </section>
+  </main>
+</div>
+<div class="modal-back" id="modal" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <h2 id="modal-title"></h2>
+    <p id="modal-body"></p>
+    <div class="row" id="modal-actions"></div>
+  </div>
+</div>
+<script>
+const VALUE = 48;
+const CPA_MAX = 25;
+const ROAS_MIN = 1.8;
+const SAMPLE_MIN = 50;
+const STORE = "epay-ads-lab-v1";
+
+const AUDIENCES = {
+  interest: ["Fintech", "Mobile payments", "Online banking", "E-commerce shoppers"],
+  behavior: ["Frequent travelers", "Digital wallet users", "Cross-border shoppers", "High-intent app installers"],
+  remarketing: ["Viewed signup page 30d", "Began signup 14d, no sign_up", "All site visitors 30d excl. sign_up", "Video viewers 50%"],
+  lookalike: ["1% sign_up MY", "2% sign_up MY", "1% high-value payers MY", "1% purchasers, SG seed"]
+};
+const AUDIENCE_LABEL = { interest: "Interest", behavior: "Behavior", remarketing: "Remarketing", lookalike: "Lookalike" };
+const PROFILE = {
+  interest: { ctr: 0.012, cpc: 4.5, cvr: 0.06 },
+  behavior: { ctr: 0.013, cpc: 4.2, cvr: 0.08 },
+  remarketing: { ctr: 0.017, cpc: 3.2, cvr: 0.14 },
+  lookalike: { ctr: 0.011, cpc: 3.9, cvr: 0.082 }
+};
+const AB_AUDIENCES = ["Lookalike 1% sign_up MY", "Interest: Fintech", "Remarketing: began signup", "Behavior: online banking"];
+const AB_PLACEMENTS = ["Advantage+ placements", "Facebook Feed", "Instagram Stories", "Audience Network"];
+const AB_HEADLINES = ["Open ePayWallet in 2 minutes", "Zero-fee transfers across Malaysia", "Your licensed digital wallet", "MYR 10 cashback on first top-up"];
+const AB_BIDS = ["Highest volume", "Cost per result goal", "Bid cap"];
+
+const TERM_LIB = {
+  "epaywallet": [{ term: "epaywallet", w: 1 }],
+  "epay wallet": [
+    { term: "epay wallet", w: 0.48 },
+    { term: "epay wallet sign up", w: 0.27 },
+    { term: "epay wallet login", w: 0.17 },
+    { term: "epay wallet customer service", w: 0.08, waste: { imp: 900, click: 40, spend: 100, conv: 1 } }
+  ],
+  "digital wallet malaysia": [
+    { term: "digital wallet malaysia", w: 0.55 },
+    { term: "digital wallet malaysia sign up", w: 0.25 },
+    { term: "best digital wallet malaysia", w: 0.12 },
+    { term: "digital wallet malaysia jobs", w: 0.08 }
+  ],
+  "e wallet app": [
+    { term: "e wallet app", w: 0.34 },
+    { term: "e wallet app download", w: 0.2 },
+    { term: "best e wallet app malaysia", w: 0.16 },
+    { term: "top up app malaysia", w: 0.1, expansion: true },
+    { term: "e wallet app hack", w: 0.12, waste: { imp: 6400, click: 160, spend: 704, conv: 0 } },
+    { term: "free bonus e wallet app", w: 0.08, waste: { imp: 5100, click: 140, spend: 616, conv: 1 } }
+  ],
+  "best e wallet malaysia": [
+    { term: "best e wallet malaysia", w: 0.62 },
+    { term: "best e wallet malaysia 2026", w: 0.28 },
+    { term: "best e wallet malaysia login", w: 0.1 }
+  ],
+  "touch n go alternative": [{ term: "touch n go alternative", w: 1 }],
+  "boost ewallet alternative": [
+    { term: "boost ewallet alternative", w: 0.7 },
+    { term: "boost ewallet alternative malaysia", w: 0.2 },
+    { term: "boost ewallet alternative customer service", w: 0.1, waste: { imp: 800, click: 24, spend: 84, conv: 0 } }
+  ]
+};
+
+function seed() {
+  return {
+    nextId: 100,
+    sem: {
+      campaign: {
+        name: "MY_Search_Signup_ManualCPC",
+        dailyBudget: 500,
+        bidStrategy: "Manual CPC",
+        locations: "Malaysia",
+        languages: "English, Malay",
+        goal: "sign_up"
+      },
+      adGroups: [
+        { id: "ag_brand", name: "AG_Brand" },
+        { id: "ag_generic", name: "AG_Generic_Wallet" },
+        { id: "ag_comp", name: "AG_Competitor" }
+      ],
+      keywords: [
+        kw("kw1", "ag_brand", "epaywallet", "exact", 18200, 1456, 2184, 312),
+        kw("kw2", "ag_brand", "epay wallet", "phrase", 9600, 576, 1440, 86),
+        kw("kw3", "ag_generic", "digital wallet malaysia", "phrase", 22400, 896, 3136, 98),
+        kw("kw4", "ag_generic", "e wallet app", "broad", 31000, 930, 3906, 42),
+        kw("kw5", "ag_generic", "best e wallet malaysia", "phrase", 12800, 512, 1792, 64),
+        kw("kw6", "ag_comp", "touch n go alternative", "exact", 6400, 320, 1120, 48),
+        kw("kw7", "ag_comp", "boost ewallet alternative", "phrase", 4200, 168, 528, 22)
+      ],
+      negatives: [
+        { id: "n1", text: "customer service", match: "phrase", level: "campaign", adGroupId: null },
+        { id: "n2", text: "hack", match: "broad", level: "campaign", adGroupId: null },
+        { id: "n3", text: "free bonus", match: "phrase", level: "campaign", adGroupId: null },
+        { id: "n4", text: "jobs", match: "exact", level: "campaign", adGroupId: null }
+      ]
+    },
+    meta: {
+      campaign: {
+        name: "MY_Leads_Signup_Web",
+        objective: "Leads",
+        location: "Website",
+        event: "sign_up",
+        attribution: "7-day click"
+      },
+      creatives: [
+        cr("cr_cashback", "Cashback_10_static", "Single image", "MYR 10 cashback on your first top-up", "Open ePayWallet in minutes. A licensed wallet for everyday payments in Malaysia.", "Sign up", 0.9),
+        cr("cr_zerofee", "Zerofee_transfer_static", "Single image", "Zero-fee transfers to any e-wallet", "Move money without a transfer fee. Sign up and verify today.", "Sign up", 1.15),
+        cr("cr_speed", "Signup_2min_video", "Video", "A licensed wallet, open in 2 minutes", "NRIC verification, then you can pay and send.", "Sign up", 1.05),
+        cr("cr_trust", "BNM_style_carousel", "Carousel", "Built for everyday payments in Malaysia", "Top up, pay, and send. See how ePayWallet fits a normal week.", "Learn more", 0.95)
+      ],
+      adSets: [
+        adset("as1", "AS_Interest_Fintech_18-35", "interest", "Fintech", 80, [
+          ad("ad1", "cr_cashback", 20000, 230, 1035, 11),
+          ad("ad2", "cr_zerofee", 20000, 250, 1125, 18)
+        ]),
+        adset("as2", "AS_Behavior_OnlineBanking", "behavior", "Digital wallet users", 60, [
+          ad("ad3", "cr_cashback", 14000, 160, 720, 11),
+          ad("ad4", "cr_zerofee", 14000, 176, 792, 16)
+        ]),
+        adset("as3", "AS_RMK_SignupStarted_30d", "remarketing", "Began signup 14d, no sign_up", 25, [
+          ad("ad5", "cr_cashback", 6000, 96, 300, 12),
+          ad("ad6", "cr_zerofee", 6000, 108, 338, 17)
+        ]),
+        adset("as4", "AS_LAL_1pct_Signup_MY", "lookalike", "1% sign_up MY", 85, [
+          ad("ad7", "cr_cashback", 26000, 270, 1080, 18),
+          ad("ad8", "cr_zerofee", 26000, 302, 1208, 28)
+        ])
+      ]
+    }
+  };
+}
+function kw(id, adGroupId, text, match, imp, click, spend, conv) {
+  return { id, adGroupId, text, match, imp, click, spend, conv };
+}
+function cr(id, name, format, headline, body, cta, lift) {
+  return { id, name, format, headline, body, cta, lift };
+}
+function ad(id, creativeId, imp, click, spend, conv) {
+  return { id, creativeId, imp, click, spend, conv };
+}
+function adset(id, name, audienceType, audienceDetail, dailyBudget, ads) {
+  return { id, name, audienceType, audienceDetail, dailyBudget, ads };
+}
+
+let data = load();
+let ui = { tab: "sem", semSub: "keywords", metaSub: "adsets", groupId: "all", adSetId: data.meta.adSets[0] ? data.meta.adSets[0].id : null };
+let derived = {};
+let modalButtons = [];
+
+function load() {
+  try {
+    const raw = localStorage.getItem(STORE);
+    if (!raw) return seed();
+    const parsed = JSON.parse(raw);
+    if (!parsed || !parsed.sem || !Array.isArray(parsed.sem.keywords) || !parsed.meta || !Array.isArray(parsed.meta.adSets)) return seed();
+    return parsed;
+  } catch (err) {
+    return seed();
+  }
+}
+function save() {
+  try { localStorage.setItem(STORE, JSON.stringify(data)); } catch (err) { /* private mode */ }
+}
+function uid(prefix) {
+  data.nextId += 1;
+  return prefix + data.nextId;
+}
+function esc(value) {
+  return String(value).replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+}
+function norm(value) {
+  return String(value).toLowerCase().replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
+}
+function words(value) { return norm(value).split(" ").filter(Boolean); }
+function hash(value) {
+  let h = 2166136261;
+  const text = String(value);
+  for (let i = 0; i < text.length; i += 1) h = Math.imul(h ^ text.charCodeAt(i), 16777619);
+  return h >>> 0;
+}
+function myr(value) {
+  return "MYR " + Number(value).toLocaleString("en-MY", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function num(value) { return Math.round(value).toLocaleString("en-US"); }
+function pct(value) { return value == null ? "—" : (value * 100).toFixed(2) + "%"; }
+function roasText(value) { return value == null ? "—" : value.toFixed(2); }
+function metrics(imp, click, spend, conv) {
+  return {
+    imp, click, spend, conv,
+    ctr: imp ? click / imp : null,
+    cpc: click ? spend / click : null,
+    cvr: click ? conv / click : null,
+    cpa: conv ? spend / conv : null,
+    roas: spend ? (VALUE * conv) / spend : null
+  };
+}
+function sumRows(rows) {
+  return metrics(
+    rows.reduce((s, r) => s + r.imp, 0),
+    rows.reduce((s, r) => s + r.click, 0),
+    rows.reduce((s, r) => s + r.spend, 0),
+    rows.reduce((s, r) => s + r.conv, 0)
+  );
+}
+function judge(metric, value, channel) {
+  if (value == null || Number.isNaN(value)) return { cls: "", label: "—" };
+  if (metric === "cpa") return value <= CPA_MAX ? { cls: "good", label: "On KPI" } : { cls: "bad", label: "Above MYR 25" };
+  if (metric === "roas") return value >= ROAS_MIN ? { cls: "good", label: "On KPI" } : { cls: "bad", label: "Below 1.8" };
+  const bands = {
+    sem: { ctr: [0.03, 0.06], cpc: [2.5, 4], cvr: [0.08, 0.15] },
+    meta: { ctr: [0.008, 0.018], cpc: [3, 6], cvr: [0.04, 0.09] }
+  };
+  const band = bands[channel] && bands[channel][metric];
+  if (!band) return { cls: "", label: "" };
+  const [lo, hi] = band;
+  if (metric === "ctr" || metric === "cvr") {
+    if (value < lo) return { cls: "bad", label: "Below band" };
+    if (value > hi) return { cls: "good", label: "Above band" };
+    return { cls: "good", label: "In band" };
+  }
+  if (value > hi) return { cls: "bad", label: "Above band" };
+  if (value < lo) return { cls: "good", label: "Below band" };
+  return { cls: "good", label: "In band" };
+}
+function cell(metric, value, channel, formatter) {
+  const status = channel ? judge(metric, value, channel) : { cls: "", label: "" };
+  const title = status.label ? ` title="${esc(status.label)}"` : "";
+  return `<td class="num ${status.cls}"${title}>${formatter(value)}</td>`;
+}
+function moneyCell(metric, value, channel) {
+  return cell(metric, value, channel, (v) => v == null ? "—" : myr(v));
+}
+function pctCell(metric, value, channel) {
+  return cell(metric, value, channel, pct);
+}
+function formatKeyword(text, match) {
+  if (match === "exact") return "[" + text + "]";
+  if (match === "phrase") return '"' + text + '"';
+  return text;
+}
+function positiveMatch(keyword, term) {
+  const key = words(keyword.text);
+  const query = words(term);
+  const keyText = key.join(" ");
+  if (keyword.match === "exact") return keyText === query.join(" ");
+  if (keyword.match === "phrase") {
+    if (query.length < key.length) return false;
+    for (let i = 0; i <= query.length - key.length; i += 1) {
+      if (query.slice(i, i + key.length).join(" ") === keyText) return true;
+    }
+    return false;
+  }
+  return key.every((word) => query.includes(word));
+}
+function negativeHits(negative, term) {
+  const key = words(negative.text);
+  const query = words(term);
+  const keyText = key.join(" ");
+  if (!key.length) return false;
+  if (negative.match === "exact") return keyText === query.join(" ");
+  if (negative.match === "phrase") {
+    if (query.length < key.length) return false;
+    for (let i = 0; i <= query.length - key.length; i += 1) {
+      if (query.slice(i, i + key.length).join(" ") === keyText) return true;
+    }
+    return false;
+  }
+  return key.every((word) => query.includes(word));
+}
+function blockingNegative(term, adGroupId) {
+  return data.sem.negatives.find((item) => (item.level === "campaign" || item.adGroupId === adGroupId) && negativeHits(item, term)) || null;
+}
+function autoTerms(text, match) {
+  const terms = [{ term: text.trim(), w: 0.7 }];
+  if (match !== "exact") {
+    terms.push({ term: text.trim() + " sign up", w: 0.18 });
+    terms.push({ term: text.trim() + " login", w: 0.12 });
+  }
+  if (match === "broad") terms.push({ term: "promo " + text.trim().split(" ").slice(-2).join(" "), w: 0.12, expansion: true });
+  return terms;
+}
+function collectTerms(keyword) {
+  const library = TERM_LIB[norm(keyword.text)] || autoTerms(keyword.text, keyword.match);
+  return library.filter((item) => item.expansion ? keyword.match === "broad" : positiveMatch(keyword, item.term));
+}
+function allocate(total, weights) {
+  if (!weights.length) return [];
+  const raw = weights.map((weight) => total * weight);
+  const base = raw.map((value) => Math.floor(value));
+  let left = Math.round(total) - base.reduce((sum, value) => sum + value, 0);
+  if (left < 0) left = 0;
+  const order = raw.map((value, index) => ({ index, frac: value - Math.floor(value) })).sort((a, b) => b.frac - a.frac || a.index - b.index);
+  for (let i = 0; i < left; i += 1) base[order[i % order.length].index] += 1;
+  return base;
+}
+function capConversions(clicks, convs) {
+  let extra = 0;
+  convs.forEach((value, index) => {
+    if (value > clicks[index]) {
+      extra += value - clicks[index];
+      convs[index] = clicks[index];
+    }
+  });
+  for (let i = 0; i < convs.length && extra > 0; i += 1) {
+    const room = clicks[i] - convs[i];
+    const add = Math.min(room, extra);
+    convs[i] += add;
+    extra -= add;
+  }
+  return convs;
+}
+function recommend(term) {
+  const rules = [
+    [/customer service|support|helpline/, "Add phrase negative: customer service"],
+    [/\bhack\b|\bmod apk\b/, "Add broad negative: hack"],
+    [/\bfree bonus\b|\bfree money\b/, "Add phrase negative: free bonus"],
+    [/\blogin\b|\bsign in\b/, "Add phrase negative: login"],
+    [/\bjobs?\b|\bcareer\b|\bsalary\b/, "Add phrase negative: jobs"]
+  ];
+  const hit = rules.find(([pattern]) => pattern.test(norm(term)));
+  return hit ? hit[1] : "Query is relevant";
+}
+function estimateWaste(term) {
+  const h = hash(term);
+  const click = 20 + (h % 80);
+  return { imp: click * (8 + (h % 6)), click, spend: Math.round(click * (3 + (h % 20) / 10) * 100) / 100, conv: 0 };
+}
+function adGroupName(id) {
+  const group = data.sem.adGroups.find((item) => item.id === id);
+  return group ? group.name : "—";
+}
+function creativeById(id) {
+  return data.meta.creatives.find((item) => item.id === id);
+}
+function rollupAds(ads) { return sumRows(ads); }
+
+function compute() {
+  const terms = [];
+  data.sem.keywords.forEach((keyword) => {
+    const candidates = collectTerms(keyword);
+    const delivering = [];
+    const excluded = [];
+    candidates.forEach((item) => {
+      const negative = blockingNegative(item.term, keyword.adGroupId);
+      if (negative) excluded.push({ item, negative });
+      else delivering.push(item);
+    });
+    const weights = delivering.map((item) => item.w || 1);
+    const weightSum = weights.reduce((sum, value) => sum + value, 0) || 1;
+    const normalized = weights.map((value) => value / weightSum);
+    const imps = allocate(keyword.imp, normalized);
+    const clicks = allocate(keyword.click, normalized);
+    const convs = capConversions(clicks, allocate(keyword.conv, normalized));
+    const cents = allocate(Math.round(keyword.spend * 100), normalized);
+    let loose = 0;
+    cents.forEach((value, index) => {
+      if (clicks[index] === 0 && value) { loose += value; cents[index] = 0; }
+    });
+    const host = clicks.findIndex((value) => value > 0);
+    if (host >= 0) cents[host] += loose;
+    delivering.forEach((item, index) => {
+      terms.push({
+        term: item.term, keywordId: keyword.id, keyword: keyword.text, match: keyword.match,
+        adGroupId: keyword.adGroupId, adGroup: adGroupName(keyword.adGroupId),
+        status: "Added", negative: "", imp: imps[index], click: clicks[index],
+        spend: cents[index] / 100, conv: convs[index], recommendation: recommend(item.term)
+      });
+    });
+    excluded.forEach(({ item, negative }) => {
+      const waste = item.waste || estimateWaste(item.term);
+      terms.push({
+        term: item.term, keywordId: keyword.id, keyword: keyword.text, match: keyword.match,
+        adGroupId: keyword.adGroupId, adGroup: adGroupName(keyword.adGroupId),
+        status: "Excluded", negative: `${negative.match} · ${negative.text}`,
+        imp: waste.imp, click: waste.click, spend: waste.spend, conv: waste.conv,
+        recommendation: `Excluded by ${negative.level} negative`
+      });
+    });
+  });
+  const adSets = data.meta.adSets.map((set) => ({ ...set, totals: rollupAds(set.ads) }));
+  const sem = sumRows(data.sem.keywords);
+  const meta = sumRows(adSets.map((set) => set.totals));
+  const paid = metrics(sem.imp + meta.imp, sem.click + meta.click, sem.spend + meta.spend, sem.conv + meta.conv);
+  const organic = { view: 18600, begin: 1720, signup: 860 };
+  derived = { terms, adSets, sem, meta, paid, organic, ga4: buildGa4(sem, meta, organic) };
+}
+function buildGa4(sem, meta, organic) {
+  function paidFunnel(clicks, signups, finishRate) {
+    const view = Math.round(clicks * 0.92);
+    let begin = Math.max(signups, Math.round(signups / finishRate));
+    if (begin > view) begin = Math.max(signups, view);
+    return { view, begin, signup: signups };
+  }
+  const google = paidFunnel(sem.click, sem.conv, 0.7);
+  const facebook = paidFunnel(meta.click, meta.conv, 0.55);
+  return [
+    { source: "google / cpc", paid: true, spend: sem.spend, utm: "utm_source=google&utm_medium=cpc", ...google },
+    { source: "facebook / cpc", paid: true, spend: meta.spend, utm: "utm_source=facebook&utm_medium=cpc", ...facebook },
+    { source: "google / organic", paid: false, spend: null, utm: "(not set)", view: organic.view, begin: organic.begin, signup: organic.signup }
+  ];
+}
+
+function keywordRows() {
+  const filter = (document.getElementById("kw-filter").value || "").trim().toLowerCase();
+  return data.sem.keywords.filter((item) => {
+    if (ui.groupId !== "all" && item.adGroupId !== ui.groupId) return false;
+    if (filter && !item.text.toLowerCase().includes(filter)) return false;
+    return true;
+  });
+}
+function visibleTerms() {
+  return derived.terms.filter((item) => ui.groupId === "all" || item.adGroupId === ui.groupId);
+}
+
+function render() {
+  compute();
+  renderHeader();
+  renderSem();
+  renderMeta();
+  renderGa4();
+  renderOverview();
+  fillAbSelects();
+}
+function renderHeader() {
+  const cpa = judge("cpa", derived.paid.cpa, "sem");
+  const roas = judge("roas", derived.paid.roas, "sem");
+  document.getElementById("header-kpis").innerHTML = [
+    `<span class="pill ${cpa.cls}">Paid CPA ${derived.paid.cpa == null ? "—" : myr(derived.paid.cpa)}</span>`,
+    `<span class="pill ${roas.cls}">Paid ROAS ${roasText(derived.paid.roas)}</span>`,
+    `<span class="pill">KPI · CPA ≤ ${CPA_MAX} · ROAS ≥ ${ROAS_MIN}</span>`,
+    `<span class="pill">Value / sign_up · MYR ${VALUE}</span>`,
+    `<span class="pill">Last 30 days</span>`
+  ].join("");
+}
+function renderSem() {
+  const groups = data.sem.adGroups.map((group) => {
+    const count = data.sem.keywords.filter((item) => item.adGroupId === group.id).length;
+    return `<button type="button" data-action="filter-ag" data-id="${group.id}" class="${ui.groupId === group.id ? "active" : ""}">${esc(group.name)}<small>${count} keywords</small></button>`;
+  }).join("");
+  document.getElementById("sem-tree").innerHTML = `
+    <div class="camp">账户结构 · Campaign</div>
+    <p style="padding:4px 8px 0; font-weight:650;">${esc(data.sem.campaign.name)}</p>
+    <p class="lede" style="padding:0 8px 8px;">${esc(data.sem.campaign.bidStrategy)} · ${myr(data.sem.campaign.dailyBudget)} / day<br>${esc(data.sem.campaign.locations)} · ${esc(data.sem.campaign.languages)}</p>
+    <button type="button" data-action="filter-ag" data-id="all" class="${ui.groupId === "all" ? "active" : ""}">All ad groups<small>${data.sem.keywords.length} keywords</small></button>
+    ${groups}
+    <form id="form-adgroup" class="row" style="padding:8px;">
+      <label>New ad group<input id="ag-name" placeholder="AG_Brand_Malay" /></label>
+      <button class="btn" type="submit">Add</button>
+    </form>
+    <div class="err" id="ag-err" style="padding:0 8px;"></div>`;
+  document.getElementById("form-adgroup").addEventListener("submit", onAddGroup);
+  fillGroupSelects();
+  const rows = keywordRows().map((item) => {
+    const m = metrics(item.imp, item.click, item.spend, item.conv);
+    return `<tr>
+      <td><span class="tag">${esc(formatKeyword(item.text, item.match))}</span></td>
+      <td>${esc(adGroupName(item.adGroupId))}</td>
+      <td>${esc(item.match)}</td>
+      <td class="num">${num(item.imp)}</td>
+      <td class="num">${num(item.click)}</td>
+      ${pctCell("ctr", m.ctr, "sem")}
+      <td class="num">${myr(item.spend)}</td>
+      ${moneyCell("cpc", m.cpc, "sem")}
+      <td class="num">${num(item.conv)}</td>
+      ${pctCell("cvr", m.cvr, "sem")}
+      ${moneyCell("cpa", m.cpa, "sem")}
+      ${cell("roas", m.roas, "sem", roasText)}
+      <td><button class="btn danger" type="button" data-action="del-kw" data-id="${item.id}">Remove</button></td>
+    </tr>`;
+  }).join("");
+  document.getElementById("kw-table").innerHTML = table(
+    ["Keyword", "Ad group", "Match", "Impr.", "Clicks", "CTR", "Cost", "Avg. CPC", "Conv.", "Conv. rate", "CPA", "ROAS", ""],
+    rows || `<tr><td colspan="13" class="muted">No keywords in this view.</td></tr>`
+  );
+  const negRows = data.sem.negatives.filter((item) => ui.groupId === "all" || item.level === "campaign" || item.adGroupId === ui.groupId).map((item) => {
+    const blocks = derived.terms.filter((term) => term.status === "Excluded" && term.negative === `${item.match} · ${item.text}` && (item.level === "campaign" || term.adGroupId === item.adGroupId)).length;
+    return `<tr>
+      <td><span class="tag">${esc(formatKeyword(item.text, item.match))}</span></td>
+      <td>${item.level === "campaign" ? "Campaign" : "Ad group"}</td>
+      <td>${item.adGroupId ? esc(adGroupName(item.adGroupId)) : "—"}</td>
+      <td>${esc(item.match)}</td>
+      <td class="num">${blocks}</td>
+      <td><button class="btn danger" type="button" data-action="del-neg" data-id="${item.id}">Remove</button></td>
+    </tr>`;
+  }).join("");
+  document.getElementById("neg-table").innerHTML = table(
+    ["Negative keyword", "Level", "Ad group", "Match type", "Search terms blocked", ""],
+    negRows || `<tr><td colspan="6" class="muted">No negatives yet.</td></tr>`
+  );
+  const terms = visibleTerms();
+  const added = terms.filter((item) => item.status === "Added");
+  const excluded = terms.filter((item) => item.status === "Excluded");
+  document.getElementById("term-note").textContent = `Delivering rows sum back to the keyword totals in this filter (${myr(added.reduce((s, r) => s + r.spend, 0))} cost). Excluded rows are a forward block estimate, ${myr(excluded.reduce((s, r) => s + r.spend, 0))}, and are not inside the 30-day cost.`;
+  document.getElementById("term-table").innerHTML = table(
+    ["Search term", "Matched keyword", "Match", "Ad group", "Status", "Impr.", "Clicks", "Cost", "Conv.", "CPA", "Recommendation"],
+    terms.map((item) => {
+      const m = metrics(item.imp, item.click, item.spend, item.conv);
+      const recClass = item.status === "Excluded" ? "muted" : item.recommendation.startsWith("Add") ? "bad" : "";
+      return `<tr>
+        <td>${esc(item.term)}</td>
+        <td>${esc(formatKeyword(item.keyword, item.match))}</td>
+        <td>${esc(item.match)}</td>
+        <td>${esc(item.adGroup)}</td>
+        <td><span class="tag ${item.status === "Excluded" ? "ex" : ""}">${item.status}</span></td>
+        <td class="num">${num(item.imp)}</td>
+        <td class="num">${num(item.click)}</td>
+        <td class="num">${myr(item.spend)}</td>
+        <td class="num">${num(item.conv)}</td>
+        <td class="num">${m.cpa == null ? "—" : myr(m.cpa)}</td>
+        <td class="${recClass}">${esc(item.recommendation)}</td>
+      </tr>`;
+    }).join("") || `<tr><td colspan="11" class="muted">No matched queries.</td></tr>`
+  );
+}
+function table(headers, body) {
+  const align = headers.map((header) => ["Impr.", "Clicks", "CTR", "Cost", "Avg. CPC", "Conv.", "Conv. rate", "CPA", "ROAS", "Spend", "CPC", "CVR", "Search terms blocked", "Daily budget", "sign_up", "view_page", "begin_signup", "Signup rate"].includes(header) ? "num" : "");
+  return `<table><thead><tr>${headers.map((header, i) => `<th class="${align[i]}">${header}</th>`).join("")}</tr></thead><tbody>${body}</tbody></table>`;
+}
+function fillGroupSelects() {
+  const options = data.sem.adGroups.map((group) => `<option value="${group.id}">${esc(group.name)}</option>`).join("");
+  ["kw-ag", "neg-ag"].forEach((id) => {
+    const el = document.getElementById(id);
+    const current = el.value;
+    el.innerHTML = options;
+    if ([...el.options].some((opt) => opt.value === current)) el.value = current;
+  });
+  syncNegGroup();
+}
+function syncNegGroup() {
+  const level = document.getElementById("neg-level").value;
+  document.getElementById("neg-ag").disabled = level === "campaign";
+}
+function renderMeta() {
+  const rows = derived.adSets.map((set) => {
+    const m = set.totals;
+    return `<tr data-action="pick-as" data-id="${set.id}" style="cursor:pointer">
+      <td>${esc(set.name)}</td>
+      <td>${AUDIENCE_LABEL[set.audienceType]}</td>
+      <td>${esc(set.audienceDetail)}</td>
+      <td class="num">${myr(set.dailyBudget)}</td>
+      <td class="num">${num(m.imp)}</td>
+      <td class="num">${num(m.click)}</td>
+      ${pctCell("ctr", m.ctr, "meta")}
+      <td class="num">${myr(m.spend)}</td>
+      ${moneyCell("cpc", m.cpc, "meta")}
+      <td class="num">${num(m.conv)}</td>
+      ${pctCell("cvr", m.cvr, "meta")}
+      ${moneyCell("cpa", m.cpa, "meta")}
+      ${cell("roas", m.roas, "meta", roasText)}
+      <td><button class="btn danger" type="button" data-action="del-as" data-id="${set.id}">Remove</button></td>
+    </tr>`;
+  }).join("");
+  document.getElementById("meta-table").innerHTML = table(
+    ["Ad set", "Audience", "Detail", "Daily budget", "Impr.", "Clicks", "CTR", "Spend", "CPC", "Conv.", "CVR", "CPA", "ROAS", ""],
+    rows || `<tr><td colspan="14" class="muted">No ad sets.</td></tr>`
+  );
+  const current = derived.adSets.find((set) => set.id === ui.adSetId) || derived.adSets[0];
+  if (!current) {
+    document.getElementById("meta-detail").innerHTML = "";
+  } else {
+    ui.adSetId = current.id;
+    const ads = current.ads.map((item) => {
+      const creative = creativeById(item.creativeId);
+      const m = metrics(item.imp, item.click, item.spend, item.conv);
+      return `<div class="admock">
+        <div class="who">Sponsored · ePayWallet · ${esc(creative ? creative.format : "Creative")}</div>
+        <h3>${esc(creative ? creative.headline : "Missing creative")}</h3>
+        <p>${esc(creative ? creative.body : "")}</p>
+        <span class="cta">${esc(creative ? creative.cta : "Sign up")}</span>
+        <p class="lede" style="margin-top:8px;">${esc(creative ? creative.name : item.creativeId)} · CTR ${pct(m.ctr)} · CPC ${m.cpc == null ? "—" : myr(m.cpc)} · CVR ${pct(m.cvr)} · CPA ${m.cpa == null ? "—" : myr(m.cpa)} · ROAS ${roasText(m.roas)}</p>
+      </div>`;
+    }).join("");
+    document.getElementById("meta-detail").innerHTML = `<h2>${esc(current.name)}</h2><p class="lede">点上面表格里的一行，看这个广告组的两套素材。下面是用户会看到的样子，以及每套素材自己的 CPA。</p><div class="previews">${ads}</div>`;
+  }
+  document.getElementById("creative-lib").innerHTML = data.meta.creatives.map((item) => `<article class="admock">
+    <div class="who">${esc(item.format)} · ${esc(item.name)}</div>
+    <h3>${esc(item.headline)}</h3>
+    <p>${esc(item.body)}</p>
+    <span class="cta">${esc(item.cta)}</span>
+  </article>`).join("");
+  fillCreativeSelects();
+  fillAudienceDetail();
+}
+function fillCreativeSelects() {
+  const options = data.meta.creatives.map((item) => `<option value="${item.id}">${esc(item.name)}</option>`).join("");
+  ["as-crea", "as-creb", "a-creative", "b-creative"].forEach((id) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const current = el.value;
+    el.innerHTML = options;
+    if ([...el.options].some((opt) => opt.value === current)) el.value = current;
+  });
+  const b = document.getElementById("as-creb");
+  if (b && b.options[1] && !b.dataset.touched) b.selectedIndex = Math.min(1, b.options.length - 1);
+}
+function fillAudienceDetail() {
+  const type = document.getElementById("as-type").value;
+  const el = document.getElementById("as-detail");
+  const current = el.value;
+  el.innerHTML = AUDIENCES[type].map((item) => `<option>${esc(item)}</option>`).join("");
+  if ([...el.options].some((opt) => opt.value === current)) el.value = current;
+}
+function fillAbSelects() {
+  const pairs = [
+    ["a-audience", "b-audience", AB_AUDIENCES],
+    ["a-placement", "b-placement", AB_PLACEMENTS],
+    ["a-headline", "b-headline", AB_HEADLINES],
+    ["a-bid", "b-bid", AB_BIDS]
+  ];
+  pairs.forEach(([aId, bId, list]) => {
+    [aId, bId].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el.options.length) return;
+      el.innerHTML = list.map((item) => `<option>${esc(item)}</option>`).join("");
+    });
+  });
+  const aCreative = document.getElementById("a-creative");
+  const bCreative = document.getElementById("b-creative");
+  if (aCreative.options.length && !aCreative.dataset.ready) {
+    aCreative.value = "cr_cashback";
+    bCreative.value = "cr_zerofee";
+    aCreative.dataset.ready = "1";
+    bCreative.dataset.ready = "1";
+    document.getElementById("b-creative").dataset.touched = "1";
+  }
+}
+function renderGa4() {
+  const paidConv = derived.sem.conv + derived.meta.conv;
+  const paidSpend = derived.sem.spend + derived.meta.spend;
+  const correct = paidSpend ? (VALUE * paidConv) / paidSpend : null;
+  const wrong = paidSpend ? (VALUE * (paidConv + derived.organic.signup)) / paidSpend : null;
+  document.getElementById("ga4-warn").innerHTML = `Organic traffic is not ad spend. Paid ROAS is <strong>${roasText(correct)}</strong>. Adding google / organic sign_up into the numerator would print <strong>${roasText(wrong)}</strong>. Do not use that number in the ads readout.`;
+  const body = derived.ga4.map((row) => {
+    const rate = row.view ? row.signup / row.view : null;
+    return `<tr>
+      <td>${esc(row.source)}</td>
+      <td>${esc(row.utm)}</td>
+      <td class="num">${row.spend == null ? "—" : myr(row.spend)}</td>
+      <td class="num">${num(row.view)}</td>
+      <td class="num">${num(row.begin)}</td>
+      <td class="num">${num(row.signup)}</td>
+      <td class="num">${pct(rate)}</td>
+      <td>${row.paid ? "Yes" : "No"}</td>
+    </tr>`;
+  }).join("");
+  document.getElementById("ga4-table").innerHTML = table(
+    ["Session source / medium", "UTM", "Cost from ads", "view_page", "begin_signup", "sign_up", "Signup rate", "In paid ROAS"],
+    body
+  );
+  const maxView = Math.max(...derived.ga4.map((row) => row.view), 1);
+  document.getElementById("ga4-funnel").innerHTML = derived.ga4.map((row) => {
+    const steps = [["view_page", row.view], ["begin_signup", row.begin], ["sign_up", row.signup]];
+    return `<div class="f-chan"><div>${esc(row.source)}</div><div class="f-bars">${steps.map(([name, value]) => {
+      const width = Math.max(18, (value / maxView) * 100);
+      return `<div class="f-bar ${row.paid ? "" : "org"}" style="width:${width}%"><span>${name}</span><b>${num(value)}</b></div>`;
+    }).join("")}</div></div>`;
+  }).join("");
+}
+function renderOverview() {
+  const paid = derived.paid;
+  const cards = [
+    ["Spend", myr(paid.spend), ""],
+    ["Impressions", num(paid.imp), ""],
+    ["Clicks", num(paid.click), ""],
+    ["CTR", pct(paid.ctr), ""],
+    ["CPC", paid.cpc == null ? "—" : myr(paid.cpc), ""],
+    ["CVR", pct(paid.cvr), ""],
+    ["CPA", paid.cpa == null ? "—" : myr(paid.cpa), judge("cpa", paid.cpa).cls],
+    ["ROAS", roasText(paid.roas), judge("roas", paid.roas).cls]
+  ];
+  document.getElementById("ov-stats").innerHTML = cards.map(([label, value, cls]) => `<article class="card stat"><div class="s">${label}</div><div class="v ${cls}">${value}</div></article>`).join("");
+  function line(name, m, channel) {
+    return `<tr>
+      <td>${name}</td>
+      <td class="num">${myr(m.spend)}</td>
+      <td class="num">${num(m.imp)}</td>
+      <td class="num">${num(m.click)}</td>
+      ${pctCell("ctr", m.ctr, channel)}
+      ${moneyCell("cpc", m.cpc, channel)}
+      ${pctCell("cvr", m.cvr, channel)}
+      ${moneyCell("cpa", m.cpa, channel || "sem")}
+      ${cell("roas", m.roas, channel || "sem", roasText)}
+    </tr>`;
+  }
+  document.getElementById("ov-table").innerHTML = table(
+    ["Channel", "Spend", "Impr.", "Clicks", "CTR", "CPC", "CVR", "CPA", "ROAS"],
+    line("Google SEM", derived.sem, "sem") + line("Meta Ads", derived.meta, "meta") + line("Paid total", derived.paid, null)
+  );
+  const fixes = [];
+  data.sem.keywords.forEach((item) => {
+    const m = metrics(item.imp, item.click, item.spend, item.conv);
+    if (m.cpa == null || m.cpa > CPA_MAX) fixes.push({ type: "Keyword", name: formatKeyword(item.text, item.match), spend: item.spend, cpa: m.cpa, roas: m.roas });
+  });
+  derived.adSets.forEach((set) => {
+    if (set.totals.cpa == null || set.totals.cpa > CPA_MAX) fixes.push({ type: "Ad set", name: set.name, spend: set.totals.spend, cpa: set.totals.cpa, roas: set.totals.roas });
+  });
+  fixes.sort((a, b) => b.spend - a.spend);
+  document.getElementById("ov-fix").innerHTML = table(
+    ["Source", "Name", "Spend", "CPA", "ROAS"],
+    fixes.map((item) => `<tr><td>${item.type}</td><td>${esc(item.name)}</td><td class="num">${myr(item.spend)}</td><td class="num bad">${item.cpa == null ? "—" : myr(item.cpa)}</td><td class="num ${item.roas != null && item.roas >= ROAS_MIN ? "good" : "bad"}">${roasText(item.roas)}</td></tr>`).join("") || `<tr><td colspan="5">Every row is inside the CPA target.</td></tr>`
+  );
+}
+
+function setTab(tab) {
+  ui.tab = tab;
+  document.querySelectorAll("[data-tab]").forEach((button) => button.classList.toggle("active", button.dataset.tab === tab));
+  document.querySelectorAll(".panel").forEach((panel) => { panel.hidden = panel.id !== "panel-" + tab; });
+}
+function setSemSub(sub) {
+  ui.semSub = sub;
+  document.querySelectorAll("[data-semsub]").forEach((button) => button.classList.toggle("active", button.dataset.semsub === sub));
+  document.querySelectorAll("[data-sempanel]").forEach((panel) => { panel.hidden = panel.dataset.sempanel !== sub; });
+}
+function setMetaSub(sub) {
+  ui.metaSub = sub;
+  document.querySelectorAll("[data-metasub]").forEach((button) => button.classList.toggle("active", button.dataset.metasub === sub));
+  document.querySelectorAll("[data-metapanel]").forEach((panel) => { panel.hidden = panel.dataset.metapanel !== sub; });
+}
+function openModal(title, body, buttons) {
+  modalButtons = buttons;
+  document.getElementById("modal-title").textContent = title;
+  document.getElementById("modal-body").textContent = body;
+  document.getElementById("modal-actions").innerHTML = buttons.map((button, index) => `<button type="button" class="btn ${button.kind || ""}" data-modal="${index}">${esc(button.label)}</button>`).join("");
+  document.getElementById("modal").hidden = false;
+}
+function closeModal() { document.getElementById("modal").hidden = true; }
+
+function commit() { save(); render(); }
+
+function onAddGroup(event) {
+  event.preventDefault();
+  const input = document.getElementById("ag-name");
+  const name = input.value.trim();
+  const err = document.getElementById("ag-err");
+  if (!name) { err.textContent = "Ad group name is required."; return; }
+  if (data.sem.adGroups.some((group) => group.name.toLowerCase() === name.toLowerCase())) { err.textContent = "That ad group already exists."; return; }
+  data.sem.adGroups.push({ id: uid("ag_"), name });
+  err.textContent = "";
+  input.value = "";
+  commit();
+}
+document.getElementById("form-keyword").addEventListener("submit", (event) => {
+  event.preventDefault();
+  const text = document.getElementById("kw-text").value.trim();
+  const match = document.getElementById("kw-match").value;
+  const adGroupId = document.getElementById("kw-ag").value;
+  const err = document.getElementById("kw-err");
+  if (!text) { err.textContent = "Enter a keyword."; return; }
+  if (data.sem.keywords.some((item) => item.adGroupId === adGroupId && norm(item.text) === norm(text) && item.match === match)) {
+    err.textContent = "This keyword and match type are already in the ad group.";
+    return;
+  }
+  const h = hash(text + "|" + match);
+  const imp = 1500 + (h % 9000);
+  const ctr = match === "exact" ? 0.04 + (h % 25) / 1000 : match === "phrase" ? 0.028 + (h % 20) / 1000 : 0.012 + (h % 16) / 1000;
+  const cpc = match === "exact" ? 2.3 + (h % 15) / 10 : match === "phrase" ? 2.8 + (h % 14) / 10 : 3.5 + (h % 20) / 10;
+  const cvr = match === "exact" ? 0.09 + (h % 70) / 1000 : match === "phrase" ? 0.06 + (h % 60) / 1000 : 0.025 + (h % 40) / 1000;
+  const click = Math.max(1, Math.round(imp * ctr));
+  const conv = Math.max(0, Math.round(click * cvr));
+  const spend = Math.round(click * cpc * 100) / 100;
+  data.sem.keywords.push(kw(uid("kw_"), adGroupId, text, match, imp, click, spend, conv));
+  err.textContent = "";
+  document.getElementById("kw-text").value = "";
+  commit();
+});
+document.getElementById("form-negative").addEventListener("submit", (event) => {
+  event.preventDefault();
+  const text = document.getElementById("neg-text").value.trim();
+  const match = document.getElementById("neg-match").value;
+  const level = document.getElementById("neg-level").value;
+  const adGroupId = level === "campaign" ? null : document.getElementById("neg-ag").value;
+  const err = document.getElementById("neg-err");
+  if (!text) { err.textContent = "Enter a negative keyword."; return; }
+  if (data.sem.negatives.some((item) => norm(item.text) === norm(text) && item.match === match && item.level === level && item.adGroupId === adGroupId)) {
+    err.textContent = "That negative already exists at this level.";
+    return;
+  }
+  data.sem.negatives.push({ id: uid("n_"), text, match, level, adGroupId });
+  err.textContent = "";
+  document.getElementById("neg-text").value = "";
+  commit();
+  setSemSub("terms");
+});
+document.getElementById("neg-level").addEventListener("change", syncNegGroup);
+document.getElementById("kw-filter").addEventListener("input", () => renderSem());
+document.getElementById("as-type").addEventListener("change", fillAudienceDetail);
+document.getElementById("as-creb").addEventListener("change", (event) => { event.target.dataset.touched = "1"; });
+document.getElementById("form-adset").addEventListener("submit", (event) => {
+  event.preventDefault();
+  const name = document.getElementById("as-name").value.trim();
+  const audienceType = document.getElementById("as-type").value;
+  const audienceDetail = document.getElementById("as-detail").value;
+  const daily = Number(document.getElementById("as-budget").value);
+  const creativeA = creativeById(document.getElementById("as-crea").value);
+  const creativeB = creativeById(document.getElementById("as-creb").value);
+  const err = document.getElementById("as-err");
+  if (!name) { err.textContent = "Ad set name is required."; return; }
+  if (!Number.isFinite(daily) || daily <= 0) { err.textContent = "Daily budget must be greater than 0."; return; }
+  if (!creativeA || !creativeB) { err.textContent = "Choose two creatives."; return; }
+  const profile = PROFILE[audienceType];
+  function make(creative, share) {
+    const spend = Math.round(daily * 30 * 0.9 * share * 100) / 100;
+    const click = Math.max(1, Math.round(spend / profile.cpc));
+    const imp = Math.max(click, Math.round(click / profile.ctr));
+    const conv = Math.max(0, Math.round(click * profile.cvr * creative.lift));
+    return ad(uid("ad_"), creative.id, imp, click, spend, conv);
+  }
+  const created = adset(uid("as_"), name, audienceType, audienceDetail, daily, [make(creativeA, 0.5), make(creativeB, 0.5)]);
+  data.meta.adSets.push(created);
+  ui.adSetId = created.id;
+  err.textContent = creativeA.id === creativeB.id ? "Created. Both slots use the same creative, so this is not a creative test." : "";
+  document.getElementById("as-name").value = "";
+  commit();
+});
+document.getElementById("form-creative").addEventListener("submit", (event) => {
+  event.preventDefault();
+  const name = document.getElementById("cr-name").value.trim();
+  const headline = document.getElementById("cr-head").value.trim();
+  const body = document.getElementById("cr-body").value.trim();
+  const err = document.getElementById("cr-err");
+  if (!name || !headline || !body) { err.textContent = "Name, headline, and primary text are required."; return; }
+  data.meta.creatives.push(cr(uid("cr_"), name, document.getElementById("cr-format").value, headline, body, "Sign up", 1));
+  err.textContent = "Uploaded to the library. Assign it on an ad set as creative A or B.";
+  document.getElementById("cr-name").value = "";
+  document.getElementById("cr-head").value = "";
+  document.getElementById("cr-body").value = "";
+  commit();
+});
+
+function readAb() {
+  const factors = ["creative", "audience", "placement", "headline", "bid"];
+  const read = (side) => ({
+    creative: document.getElementById(side + "-creative").value,
+    audience: document.getElementById(side + "-audience").value,
+    placement: document.getElementById(side + "-placement").value,
+    headline: document.getElementById(side + "-headline").value,
+    bid: document.getElementById(side + "-bid").value,
+    spend: Number(document.getElementById(side + "-spend").value),
+    conv: Number(document.getElementById(side + "-conv").value)
+  });
+  return { declared: document.getElementById("ab-factor").value, factors, a: read("a"), b: read("b") };
+}
+function evaluateAb(fromUser) {
+  const test = readAb();
+  const err = document.getElementById("ab-err");
+  err.textContent = "";
+  const numbersOk = [test.a, test.b].every((side) => Number.isFinite(side.spend) && side.spend >= 0 && Number.isFinite(side.conv) && side.conv >= 0);
+  if (!numbersOk) {
+    err.textContent = "Spend and conversions must be numbers, zero or greater.";
+    document.getElementById("ab-result").innerHTML = "";
+    return;
+  }
+  const changed = test.factors.filter((factor) => test.a[factor] !== test.b[factor]);
+  const names = { creative: "Creative", audience: "Audience", placement: "Placement", headline: "Headline", bid: "Bid strategy" };
+  let blocked = "";
+  if (changed.length === 0) blocked = "Versions are identical on every factor. Change exactly one variable, then evaluate again.";
+  else if (changed.length > 1) blocked = "This setup changes " + changed.map((factor) => names[factor]).join(" and ") + ". An A/B test may change only one variable. Hold the others fixed or the result is confounded.";
+  else if (changed[0] !== test.declared) blocked = "The versions differ on " + names[changed[0]] + ", but the variable under test is marked as " + names[test.declared] + ". Align them before calling a winner.";
+  if (blocked && fromUser) openModal("Test setup blocked", blocked, [{ label: "Back to setup", kind: "primary" }]);
+  const a = metrics(0, 0, test.a.spend, test.a.conv);
+  const b = metrics(0, 0, test.b.spend, test.b.conv);
+  const sampleOk = test.a.conv >= SAMPLE_MIN && test.b.conv >= SAMPLE_MIN;
+  let winner = "";
+  if (!blocked && test.a.spend > 0 && test.b.spend > 0 && (test.a.conv > 0 || test.b.conv > 0)) {
+    const aScore = a.cpa == null ? Infinity : a.cpa;
+    const bScore = b.cpa == null ? Infinity : b.cpa;
+    if (Math.abs(aScore - bScore) / Math.max(aScore, bScore, 1) < 0.01) winner = "tie";
+    else winner = aScore < bScore ? "A" : "B";
+  }
+  const card = (label, side, m) => {
+    const cpa = judge("cpa", m.cpa);
+    const roas = judge("roas", m.roas);
+    return `<article class="card"><h2>Version ${label}</h2><p>Spend ${myr(side.spend)} · sign_up ${num(side.conv)}</p><p class="${cpa.cls}">CPA ${m.cpa == null ? "—" : myr(m.cpa)}</p><p class="${roas.cls}">ROAS ${roasText(m.roas)}</p><p class="lede">${side.conv >= SAMPLE_MIN ? "Sample meets 50 conversions." : "Sample below 50 conversions."}</p></article>`;
+  };
+  let call = "";
+  if (blocked) call = `<div class="winner bad"><h3>Winner withheld</h3><p>${esc(blocked)}</p></div>`;
+  else if (!sampleOk) call = `<div class="winner bad"><h3>Insufficient sample</h3><p>Each version needs at least ${SAMPLE_MIN} sign_up conversions. A has ${num(test.a.conv)}, B has ${num(test.b.conv)}. Do not scale either version from this read.</p></div>`;
+  else if (winner === "tie") call = `<div class="winner"><h3>No meaningful CPA gap</h3><p>The two versions are within 1%. Keep the test running or change the offer.</p></div>`;
+  else if (winner) {
+    const side = winner === "A" ? a : b;
+    const meets = side.cpa != null && side.cpa <= CPA_MAX && side.roas != null && side.roas >= ROAS_MIN;
+    call = `<div class="winner"><h3>Version ${winner} wins on CPA</h3><p>CPA ${myr(side.cpa)} · ROAS ${roasText(side.roas)}. ${meets ? "It also meets the account KPI." : "It beats the other version, and it still misses CPA ≤ 25 or ROAS ≥ 1.8."}</p></div>`;
+  } else call = `<div class="winner bad"><h3>No winner</h3><p>Enter spend on both versions. A version with zero spend cannot be ranked.</p></div>`;
+  document.getElementById("ab-result").innerHTML = call + `<div class="result">${card("A", test.a, a)}${card("B", test.b, b)}</div>`;
+}
+function applyAbPreset(kind) {
+  const set = (id, value) => { document.getElementById(id).value = value; };
+  set("ab-factor", "creative");
+  set("a-audience", AB_AUDIENCES[0]);
+  set("b-audience", kind === "bad" ? AB_AUDIENCES[1] : AB_AUDIENCES[0]);
+  set("a-placement", AB_PLACEMENTS[0]);
+  set("b-placement", AB_PLACEMENTS[0]);
+  set("a-headline", AB_HEADLINES[0]);
+  set("b-headline", AB_HEADLINES[0]);
+  set("a-bid", AB_BIDS[0]);
+  set("b-bid", AB_BIDS[0]);
+  set("a-creative", "cr_cashback");
+  set("b-creative", "cr_zerofee");
+  set("a-spend", kind === "bad" ? "2100" : "2400");
+  set("b-spend", kind === "bad" ? "1980" : "2350");
+  set("a-conv", kind === "bad" ? "70" : "78");
+  set("b-conv", kind === "bad" ? "88" : "96");
+  evaluateAb(kind === "bad");
+}
+
+function csvCell(value) {
+  const text = String(value ?? "");
+  const safe = /^[=+\-@]/.test(text) ? "'" + text : text;
+  return '"' + safe.replace(/"/g, '""') + '"';
+}
+function downloadCsv(filename, rows) {
+  const csv = rows.map((row) => row.map(csvCell).join(",")).join("\r\n");
+  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(link.href), 1500);
+}
+function metricTail(m) {
+  return [m.ctr == null ? "" : (m.ctr * 100).toFixed(2) + "%", m.cpc == null ? "" : m.cpc.toFixed(2), m.cvr == null ? "" : (m.cvr * 100).toFixed(2) + "%", m.cpa == null ? "" : m.cpa.toFixed(2), m.roas == null ? "" : m.roas.toFixed(2)];
+}
+
+document.body.addEventListener("click", (event) => {
+  const tab = event.target.closest("[data-tab]");
+  if (tab) { setTab(tab.dataset.tab); return; }
+  const semSub = event.target.closest("[data-semsub]");
+  if (semSub) { setSemSub(semSub.dataset.semsub); return; }
+  const metaSub = event.target.closest("[data-metasub]");
+  if (metaSub) { setMetaSub(metaSub.dataset.metasub); return; }
+  const modalButton = event.target.closest("[data-modal]");
+  if (modalButton) {
+    const action = modalButtons[Number(modalButton.dataset.modal)];
+    closeModal();
+    if (action && action.run) action.run();
+    return;
+  }
+  const button = event.target.closest("[data-action]");
+  if (!button) return;
+  const action = button.dataset.action;
+  const id = button.dataset.id;
+  if (action === "filter-ag") { ui.groupId = id; renderSem(); return; }
+  if (action === "pick-as") { ui.adSetId = id; renderMeta(); return; }
+  if (action === "del-kw") { data.sem.keywords = data.sem.keywords.filter((item) => item.id !== id); commit(); return; }
+  if (action === "del-neg") { data.sem.negatives = data.sem.negatives.filter((item) => item.id !== id); commit(); return; }
+  if (action === "del-as") {
+    if (data.meta.adSets.length === 1) { openModal("Keep one ad set", "The lab needs at least one ad set. Reset the demo if you want the original four back.", [{ label: "OK", kind: "primary" }]); return; }
+    data.meta.adSets = data.meta.adSets.filter((item) => item.id !== id);
+    if (ui.adSetId === id) ui.adSetId = data.meta.adSets[0].id;
+    commit();
+    return;
+  }
+  if (action === "reset") {
+    openModal("Reset demo data", "This clears keywords, negatives, ad sets, and creatives you added in this browser.", [
+      { label: "Cancel" },
+      { label: "Reset", kind: "danger", run() { localStorage.removeItem(STORE); data = seed(); ui.groupId = "all"; ui.adSetId = data.meta.adSets[0].id; commit(); } }
+    ]);
+    return;
+  }
+  if (action === "export-keywords") {
+    const rows = [["Keyword", "Ad group", "Match type", "Impressions", "Clicks", "Cost MYR", "Conversions", "CTR", "Avg CPC", "Conv. rate", "CPA", "ROAS"]];
+    data.sem.keywords.forEach((item) => {
+      const m = metrics(item.imp, item.click, item.spend, item.conv);
+      rows.push([formatKeyword(item.text, item.match), adGroupName(item.adGroupId), item.match, item.imp, item.click, item.spend.toFixed(2), item.conv, ...metricTail(m)]);
+    });
+    downloadCsv("epaywallet_keywords_30d.csv", rows);
+    return;
+  }
+  if (action === "export-terms") {
+    const rows = [["Search term", "Campaign", "Ad group", "Matched keyword", "Match type", "Status", "Negative", "Impressions", "Clicks", "Cost MYR", "Conversions", "CTR", "Avg CPC", "Conv. rate", "CPA", "ROAS", "Recommendation"]];
+    derived.terms.forEach((item) => {
+      const m = metrics(item.imp, item.click, item.spend, item.conv);
+      rows.push([item.term, data.sem.campaign.name, item.adGroup, formatKeyword(item.keyword, item.match), item.match, item.status, item.negative, item.imp, item.click, item.spend.toFixed(2), item.conv, ...metricTail(m), item.recommendation]);
+    });
+    downloadCsv("epaywallet_search_terms_30d.csv", rows);
+    return;
+  }
+  if (action === "export-meta") {
+    const rows = [["Ad set", "Audience type", "Audience", "Daily budget MYR", "Impressions", "Clicks", "Spend MYR", "Conversions", "CTR", "CPC", "CVR", "CPA", "ROAS"]];
+    derived.adSets.forEach((set) => {
+      const m = set.totals;
+      rows.push([set.name, AUDIENCE_LABEL[set.audienceType], set.audienceDetail, set.dailyBudget, m.imp, m.click, m.spend.toFixed(2), m.conv, ...metricTail(m)]);
+    });
+    downloadCsv("epaywallet_meta_adsets_30d.csv", rows);
+    return;
+  }
+  if (action === "export-ga4") {
+    const rows = [["Session source / medium", "UTM", "Cost MYR", "view_page", "begin_signup", "sign_up", "Included in paid ROAS"]];
+    derived.ga4.forEach((row) => rows.push([row.source, row.utm, row.spend == null ? "" : row.spend.toFixed(2), row.view, row.begin, row.signup, row.paid ? "Yes" : "No"]));
+    downloadCsv("epaywallet_ga4_30d.csv", rows);
+    return;
+  }
+  if (action === "export-overview") {
+    const rows = [["Channel", "Spend", "Impressions", "Clicks", "CTR", "CPC", "CVR", "CPA", "ROAS"]];
+    [["Google SEM", derived.sem], ["Meta Ads", derived.meta], ["Paid total", derived.paid]].forEach(([name, m]) => {
+      rows.push([name, m.spend.toFixed(2), m.imp, m.click, ...metricTail(m)]);
+    });
+    downloadCsv("epaywallet_paid_summary_30d.csv", rows);
+    return;
+  }
+  if (action === "ab-eval") evaluateAb(true);
+  if (action === "ab-valid") applyAbPreset("valid");
+  if (action === "ab-bad") applyAbPreset("bad");
+});
+document.addEventListener("keydown", (event) => { if (event.key === "Escape") closeModal(); });
+
+setTab("sem");
+setSemSub("keywords");
+setMetaSub("adsets");
+render();
+evaluateAb(false);
+</script>
+</body>
+</html>
